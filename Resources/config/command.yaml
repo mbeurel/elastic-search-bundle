@@ -1,0 +1,9 @@
+services:
+  _defaults:
+    public:       false
+
+##### Command to Elastic Search index
+  austral.elastic_search.command:
+    class:        Austral\ElasticSearchBundle\Command\ElasticSearchCommand
+    tags:
+      - { name: console.command, command: "austral:elastic-search" }

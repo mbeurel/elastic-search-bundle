@@ -1,0 +1,38 @@
+{
+  "name":                                     "austral/elastic-search-bundle",
+  "type":                                     "symfony-bundle",
+  "description":                              "Austral Elastic Search Bundle",
+  "keywords":                                 ["Austral", "Elastic Search", "Symfony"],
+  "license":                                  "MIT",
+  "version":                                  "3.0",
+  "authors": [
+    {
+      "name":                                 "Matthieu Beurel",
+      "email":                                "matthieu@austral.dev",
+      "role":                                 "Developer"
+    }
+  ],
+  "require": {
+    "php":                                    "^7.4 || ^8.0",
+
+    "austral/tools-bundle":                   "*@dev",
+    "austral/entity-bundle":                  "*@dev",
+
+    "symfony/config":                         "^5.4",
+    "symfony/event-dispatcher":               "^5.4",
+    "elasticsearch/elasticsearch":            "^v7.17.0"
+  },
+  "require-dev": {
+  },
+  "suggest": {
+    "austral/admin-bundle":                   "*@dev",
+    "austral/website-bundle":                 "*@dev"
+  },
+  "config": {
+    "sort-packages":                          true
+  },
+  "autoload": {
+    "psr-4": { "Austral\\ElasticSearchBundle\\": "" }
+  },
+  "minimum-stability":                        "dev"
+}
