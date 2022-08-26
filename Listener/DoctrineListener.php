@@ -98,7 +98,7 @@ class DoctrineListener implements EventSubscriber
       {
         $object = $object->getMaster();
       }
-      $this->elasticSearch->createOrUpdateObject($object);
+      $this->elasticSearch->deleteObject($object);
     }
   }
 
