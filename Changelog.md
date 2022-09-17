@@ -1,7 +1,7 @@
 Changelog
 =========
 
-### Version 3.1.0 (2021-09-17)
+### Version 3.1.0 (2022-09-17)
 * Updated bundles version to 3.1
 * Changed the method check if object is a TranslateChildInterface`
 
