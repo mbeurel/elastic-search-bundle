@@ -10,7 +10,6 @@
 
 namespace Austral\ElasticSearchBundle\Command;
 
-use Austral\EntityBundle\Event\EntityMappingEvent;
 use Austral\ToolsBundle\Command\Base\Command;
 use Austral\ToolsBundle\Command\Exception\CommandException;
 

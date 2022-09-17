@@ -12,6 +12,7 @@ namespace Austral\ElasticSearchBundle\Listener;
 
 use Austral\ElasticSearchBundle\Configuration\ElasticSearchConfiguration;
 use Austral\ElasticSearchBundle\Services\ElasticSearch;
+use Austral\EntityBundle\Entity\Interfaces\TranslateChildInterface;
 use Austral\ToolsBundle\AustralTools;
 use Doctrine\Common\EventArgs;
 use Doctrine\Common\EventSubscriber;
@@ -75,7 +76,7 @@ class DoctrineListener implements EventSubscriber
     {
       $ea = $this->getEventAdapter($args);
       $object = $ea->getObject();
-      if(AustralTools::usedImplements(get_class($object), "Austral\EntityTranslateBundle\Entity\Interfaces\EntityTranslateChildInterface"))
+      if($object instanceof TranslateChildInterface)
       {
         $object = $object->getMaster();
       }
@@ -94,7 +95,7 @@ class DoctrineListener implements EventSubscriber
     {
       $ea = $this->getEventAdapter($args);
       $object = $ea->getObject();
-      if(AustralTools::usedImplements(get_class($object), "Austral\EntityTranslateBundle\Entity\Interfaces\EntityTranslateChildInterface"))
+      if($object instanceof TranslateChildInterface)
       {
         $object = $object->getMaster();
       }

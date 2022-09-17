@@ -300,7 +300,6 @@ Class ElasticSearch
             $object,
             sprintf("%s_%s_%s", $object->getSluggerClassname(), $object->getId(), $translate->getLanguage())
           );
-          dump($elasticSearchParameters);
         }
       }
       else
@@ -312,8 +311,6 @@ Class ElasticSearch
           sprintf("%s_%s", $object->getSluggerClassname(), $object->getId())
         );
       }
-      dump($elasticSearchParameters);
-      dump("toto");
       $this->hydratePush($elasticSearchParameters);
     }
 
