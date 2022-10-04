@@ -4,7 +4,6 @@
   "description":                              "Austral Elastic Search Bundle",
   "keywords":                                 ["Austral", "Elastic Search", "Symfony"],
   "license":                                  "MIT",
-  "version":                                  "3.1",
   "authors": [
     {
       "name":                                 "Matthieu Beurel",
