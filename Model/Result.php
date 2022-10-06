@@ -463,11 +463,11 @@ class Result
   }
 
   /**
-   * @param string $object
+   * @param EntityInterface|null $object
    *
    * @return $this
    */
-  public function setObject(string $object): Result
+  public function setObject(?EntityInterface $object): Result
   {
     $this->object = $object;
     return $this;

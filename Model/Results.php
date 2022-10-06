@@ -39,6 +39,11 @@ class Results
    */
   protected array $searchObjects = array();
 
+  /**
+   * @var array
+   */
+  protected array $_shards = array();
+
 
   /**
    * SearchResults constructor.
