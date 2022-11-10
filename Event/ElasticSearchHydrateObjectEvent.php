@@ -14,14 +14,14 @@ use Austral\EntityBundle\Entity\EntityInterface;
 use Symfony\Contracts\EventDispatcher\Event;
 
 /**
- * Austral Event ElasticSearchHydrate.
+ * Austral Event ElasticSearchHydrateObject.
  * @author Matthieu Beurel <matthieu@austral.dev>
  * @final
  */
-class ElasticSearchHydrateEvent extends Event
+class ElasticSearchHydrateObjectEvent extends Event
 {
 
-  const EVENT_HYDRATE = "austral.elastic_search.hydrate";
+  const EVENT_HYDRATE = "austral.elastic_search.hydrate.object";
 
   /**
    * @var EntityInterface
@@ -40,7 +40,7 @@ class ElasticSearchHydrateEvent extends Event
 
 
   /**
-   * EntityDuplicateEvent constructor.
+   * ElasticSearchHydrateObjectEvent constructor.
    *
    * @param EntityInterface $object
    * @param array $indexParameters
@@ -64,9 +64,9 @@ class ElasticSearchHydrateEvent extends Event
   /**
    * @param array $indexParameters
    *
-   * @return ElasticSearchHydrateEvent
+   * @return ElasticSearchHydrateObjectEvent
    */
-  public function setIndexParameters(array $indexParameters): ElasticSearchHydrateEvent
+  public function setIndexParameters(array $indexParameters): ElasticSearchHydrateObjectEvent
   {
     $this->indexParameters = $indexParameters;
     return $this;
@@ -83,9 +83,9 @@ class ElasticSearchHydrateEvent extends Event
   /**
    * @param EntityInterface $object
    *
-   * @return ElasticSearchHydrateEvent
+   * @return ElasticSearchHydrateObjectEvent
    */
-  public function setObject(EntityInterface $object): ElasticSearchHydrateEvent
+  public function setObject(EntityInterface $object): ElasticSearchHydrateObjectEvent
   {
     $this->object = $object;
     return $this;
@@ -102,9 +102,9 @@ class ElasticSearchHydrateEvent extends Event
   /**
    * @param mixed $valuesParameters
    *
-   * @return ElasticSearchHydrateEvent
+   * @return ElasticSearchHydrateObjectEvent
    */
-  public function setValuesParameters($valuesParameters): ElasticSearchHydrateEvent
+  public function setValuesParameters($valuesParameters): ElasticSearchHydrateObjectEvent
   {
     $this->valuesParameters = $valuesParameters;
     return $this;

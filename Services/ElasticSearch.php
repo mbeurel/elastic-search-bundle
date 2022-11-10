@@ -13,19 +13,21 @@ namespace Austral\ElasticSearchBundle\Services;
 use Austral\ElasticSearchBundle\Annotation\ElasticSearchField;
 use Austral\ElasticSearchBundle\Configuration\ElasticSearchConfiguration;
 use Austral\ElasticSearchBundle\Event\ElasticSearchEvent;
-use Austral\ElasticSearchBundle\Event\ElasticSearchHydrateEvent;
+use Austral\ElasticSearchBundle\Event\ElasticSearchHydrateObjectEvent;
+use Austral\ElasticSearchBundle\Event\ElasticSearchSelectObjectsEvent;
 use Austral\ElasticSearchBundle\Mapping\ElasticSearchMapping;
+use Austral\ElasticSearchBundle\Model\ObjectToHydrate;
 use Austral\ElasticSearchBundle\Model\Result;
 use Austral\ElasticSearchBundle\Model\Results;
 use Austral\EntityBundle\Entity\EntityInterface;
 use Austral\EntityBundle\EntityManager\EntityManager;
 use Austral\EntityBundle\Mapping\EntityMapping;
 use Austral\EntityBundle\Mapping\Mapping;
+use Austral\EntityBundle\ORM\AustralQueryBuilder;
 use Austral\EntityTranslateBundle\Mapping\EntityTranslateMapping;
-use Austral\ManagerBundle\Model\ElasticSearch\DataHydrate;
+use Austral\ElasticSearchBundle\Model\DataHydrate;
 use Austral\ToolsBundle\AustralTools;
 use Austral\ToolsBundle\Traits\IoTrait;
-use Doctrine\ORM\QueryBuilder;
 use Elasticsearch\Client;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
@@ -140,7 +142,7 @@ Class ElasticSearch
             "analyzer" => array(
               "default" =>  array(
                 "tokenizer" =>  "standard",
-                "filter" => [ "asciifolding", "lowercase", "3_5_edgegrams"]
+                "filter"    => [ "asciifolding", "lowercase", "3_5_edgegrams"]
               )
             ),
             "filter" => array(
@@ -181,40 +183,27 @@ Class ElasticSearch
       /** @var ElasticSearchMapping $elasticSearchMapping */
       if($elasticSearchMapping = $entityMapping->getEntityClassMapping(ElasticSearchMapping::class))
       {
-        $isEntityTranslate = (bool) $entityMapping->getEntityClassMapping(EntityTranslateMapping::class);
-        $objects = $entityManager->getRepository($entityMapping->entityClass)->selectByClosure(function(QueryBuilder $queryBuilder) use($isEntityTranslate) {
-          if($isEntityTranslate)
-          {
-            $queryBuilder->leftJoin("root.translates", "translates")->addSelect("translates");
-          }
+        $eventDispatcher = $this->eventDispatcher;
+        $eventQuery = new ElasticSearchSelectObjectsEvent($entityMapping->entityClass);
+        $objects = $entityManager->getRepository($entityMapping->entityClass)->selectByClosure(function(AustralQueryBuilder $queryBuilder) use($eventQuery, $eventDispatcher){
+          $eventQuery->setQueryBuilder($queryBuilder);
+          $eventDispatcher->dispatch($eventQuery, ElasticSearchSelectObjectsEvent::EVENT_QUERY_BUILDER);
           return $queryBuilder;
         });
 
-        /** @var EntityInterface $object */
-        foreach ($objects as $object)
+        $eventQuery->setObjects($objects);
+        $eventDispatcher->dispatch($eventQuery, ElasticSearchSelectObjectsEvent::EVENT_OBJECTS);
+
+        /** @var ObjectToHydrate $objectToHydrate */
+        foreach ($eventQuery->getObjectsToHydrate() as $objectToHydrate)
         {
-          if($isEntityTranslate)
-          {
-            foreach ($object->getTranslates() as $translate)
-            {
-              $object->setCurrentLanguage($translate->getLanguage());
-              $this->hydrateObject(
-                $elasticSearchParameters,
-                $elasticSearchMapping,
-                $object,
-                sprintf("%s_%s_%s", $object->getSluggerClassname(), $object->getId(), $translate->getLanguage())
-              );
-            }
-          }
-          else
-          {
-            $this->hydrateObject(
-              $elasticSearchParameters,
-              $elasticSearchMapping,
-              $object,
-              sprintf("%s_%s", $object->getSluggerClassname(), $object->getId())
-            );
-          }
+          $this->hydrateObject(
+            $elasticSearchParameters,
+            $elasticSearchMapping,
+            $objectToHydrate->getObject(),
+            $objectToHydrate->getElasticSearchId(),
+            $objectToHydrate->getValuesParameters()
+          );
         }
       }
     }
@@ -227,19 +216,25 @@ Class ElasticSearch
    * @param ElasticSearchMapping $elasticSearchMapping
    * @param EntityInterface $object
    * @param string $elasticSearchObjectId
+   * @param array $valuesParameters
    *
    * @return $this
    * @throws \Exception
    */
-  protected function hydrateObject(array &$elasticSearchParameters, ElasticSearchMapping $elasticSearchMapping, EntityInterface $object, string $elasticSearchObjectId): ElasticSearch
+  protected function hydrateObject(
+    array &$elasticSearchParameters,
+    ElasticSearchMapping $elasticSearchMapping,
+    EntityInterface $object,
+    string $elasticSearchObjectId,
+    array $valuesParameters = array()
+  ): ElasticSearch
   {
-    $valuesParameters = array();
     if(method_exists($object, "getElasticSearchValues"))
     {
       $elasticSearchValues = $object->getElasticSearchValues();
       if($elasticSearchValues instanceof DataHydrate)
       {
-        $valuesParameters = $elasticSearchValues->toArray();
+        $valuesParameters = array_merge($valuesParameters, $elasticSearchValues->toArray());
       }
     }
 
@@ -260,14 +255,15 @@ Class ElasticSearch
     $objectUpdate = method_exists($object, "getUpdate") ? $object->getUpdate() : new \DateTime() ;
     $valuesParameters[ElasticSearchField::NAME_UPDATE] = $objectUpdate->format("Y-m-d h:i:s");
 
-    $elasticSearchHydrateEvent = new ElasticSearchHydrateEvent($object, array(
+    $elasticSearchHydrateEvent = new ElasticSearchHydrateObjectEvent($object, array(
       "index" =>  array(
         "_index"  =>  $this->elasticSearchConfiguration->get("index_name"),
         "_type"   =>  $indexType,
         "_id"     =>  $elasticSearchObjectId
       )
     ), $valuesParameters);
-    $this->eventDispatcher->dispatch($elasticSearchHydrateEvent, ElasticSearchHydrateEvent::EVENT_HYDRATE);
+
+    $this->eventDispatcher->dispatch($elasticSearchHydrateEvent, ElasticSearchHydrateObjectEvent::EVENT_HYDRATE);
     $elasticSearchParameters['body'][] = $elasticSearchHydrateEvent->getIndexParameters();
     $elasticSearchParameters['body'][] = $elasticSearchHydrateEvent->getValuesParameters();
     return $this;
@@ -288,27 +284,21 @@ Class ElasticSearch
     /** @var ElasticSearchMapping $elasticSearchMapping */
     if($entityMapping && ($elasticSearchMapping = $entityMapping->getEntityClassMapping(ElasticSearchMapping::class)))
     {
-      $isEntityTranslate = (bool) $entityMapping->getEntityClassMapping(EntityTranslateMapping::class);
-      if($isEntityTranslate)
-      {
-        foreach ($object->getTranslates() as $translate)
-        {
-          $object->setCurrentLanguage($translate->getLanguage());
-          $this->hydrateObject(
-            $elasticSearchParameters,
-            $elasticSearchMapping,
-            $object,
-            sprintf("%s_%s_%s", $object->getSluggerClassname(), $object->getId(), $translate->getLanguage())
-          );
-        }
-      }
-      else
+
+      $eventQuery = new ElasticSearchSelectObjectsEvent($entityMapping->entityClass);
+
+      $eventQuery->setObjects(array($object));
+      $this->eventDispatcher->dispatch($eventQuery, ElasticSearchSelectObjectsEvent::EVENT_OBJECTS);
+
+      /** @var ObjectToHydrate $objectToHydrate */
+      foreach ($eventQuery->getObjectsToHydrate() as $objectToHydrate)
       {
         $this->hydrateObject(
           $elasticSearchParameters,
           $elasticSearchMapping,
-          $object,
-          sprintf("%s_%s", $object->getSluggerClassname(), $object->getId())
+          $objectToHydrate->getObject(),
+          $objectToHydrate->getElasticSearchId(),
+          $objectToHydrate->getValuesParameters()
         );
       }
       $this->hydratePush($elasticSearchParameters);
@@ -321,25 +311,26 @@ Class ElasticSearch
 
   /**
    * @param array $elasticSearchParameters
+   * @param array $elasticSearchMappingData
    *
    * @return $this
    */
   protected function hydratePush(array $elasticSearchParameters = array()): ElasticSearch
   {
-    $reponse = null;
+    $response = null;
     try {
       if(count($elasticSearchParameters) > 0)
       {
-        $reponse = $this->client->bulk($elasticSearchParameters);
-        if($reponse["errors"])
+        $response = $this->client->bulk($elasticSearchParameters);
+        if($response["errors"])
         {
           throw new \Exception("Hydrate is failed");
         }
 
         $nbItemCreated = 0;
         $nbItemUpdated = 0;
-        $nbItems = count($reponse['items']);
-        foreach($reponse['items'] as $item)
+        $nbItems = count($response['items']);
+        foreach($response['items'] as $item)
         {
           if($item["index"]["result"] === "created")
           {
@@ -357,7 +348,7 @@ Class ElasticSearch
         $this->viewMessage("Elastic Search - Hydrate success -> 0 item");
       }
     } catch(\Exception $e) {
-      AustralTools::dump($reponse, $e);
+      AustralTools::dump($response, $e);
       $this->viewMessage("Elastic Search - Hydrate error : {$e->getMessage()}", "error");
     }
     return $this;
@@ -444,8 +435,8 @@ Class ElasticSearch
 
     if($language)
     {
-      $filters["filter"] = array(
-        "term"    =>  array(
+      $filters["bool"]["filter"] = array(
+        "match"    =>  array(
           "language"  =>  $language
         )
       );
@@ -485,7 +476,7 @@ Class ElasticSearch
     $elasticSearchEvent = new ElasticSearchEvent($this->elasticSearchConfiguration->get("index_name"), $parameters, $keyname);
     $this->eventDispatcher->dispatch($elasticSearchEvent, ElasticSearchEvent::EVENT_FILTER);
 
-    $results = $this->client->search($parameters);
+    $results = $this->client->search($elasticSearchEvent->getElasticSearchParameters());
     $searchResult = new Results();
     $searchResult->initValues($results);
     return $searchResult;

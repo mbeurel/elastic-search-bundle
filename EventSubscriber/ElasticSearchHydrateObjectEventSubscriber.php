@@ -10,16 +10,15 @@
 
 namespace Austral\ElasticSearchBundle\EventSubscriber;
 
-use Austral\ElasticSearchBundle\Event\ElasticSearchEvent;
-use Austral\ElasticSearchBundle\Event\ElasticSearchHydrateEvent;
+use Austral\ElasticSearchBundle\Event\ElasticSearchHydrateObjectEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
- * Austral ElasticSearchHydrate EventSubscriber.
+ * Austral ElasticSearchHydrateObject EventSubscriber.
  * @author Matthieu Beurel <matthieu@austral.dev>
  * @final
  */
-class ElasticSearchHydrateEventSubscriber implements EventSubscriberInterface
+class ElasticSearchHydrateObjectEventSubscriber implements EventSubscriberInterface
 {
 
   /**
@@ -37,16 +36,16 @@ class ElasticSearchHydrateEventSubscriber implements EventSubscriberInterface
   public static function getSubscribedEvents(): array
   {
     return [
-      ElasticSearchHydrateEvent::EVENT_HYDRATE     =>  ["hydrate", 1024]
+      ElasticSearchHydrateObjectEvent::EVENT_HYDRATE     =>  ["hydrate", 0]
     ];
   }
 
   /**
-   * @param ElasticSearchHydrateEvent $elasticSearchHydrateEvent
+   * @param ElasticSearchHydrateObjectEvent $elasticSearchHydrateEvent
    *
    * @return void
    */
-  public function hydrate(ElasticSearchHydrateEvent $elasticSearchHydrateEvent)
+  public function hydrate(ElasticSearchHydrateObjectEvent $elasticSearchHydrateEvent)
   {
   }
 

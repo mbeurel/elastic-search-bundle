@@ -39,7 +39,12 @@ services:
     tags:
       - { name: kernel.event_subscriber}
 
-  austral.elastic_search.hydrate.event_subscriber:
-    class:        Austral\ElasticSearchBundle\EventSubscriber\ElasticSearchHydrateEventSubscriber
+  austral.elastic_search.hydrate_object.event_subscriber:
+    class:        Austral\ElasticSearchBundle\EventSubscriber\ElasticSearchHydrateObjectEventSubscriber
+    tags:
+      - { name: kernel.event_subscriber}
+
+  austral.elastic_search.select_objects.event_subscriber:
+    class:        Austral\ElasticSearchBundle\EventSubscriber\ElasticSearchSelectObjectsEventSubscriber
     tags:
       - { name: kernel.event_subscriber}

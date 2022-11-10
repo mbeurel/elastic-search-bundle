@@ -8,7 +8,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Austral\ManagerBundle\Model\ElasticSearch;
+namespace Austral\ElasticSearchBundle\Model;
 
 use Austral\ElasticSearchBundle\Annotation\ElasticSearchField;
 use Austral\EntityBundle\Entity\EntityInterface;

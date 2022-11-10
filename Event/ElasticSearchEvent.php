@@ -39,8 +39,9 @@ class ElasticSearchEvent extends Event
   private array $elasticSearchParameters;
 
   /**
-   * EntityDuplicateEvent constructor.
-   *
+   * @param string $indexName
+   * @param array $elasticSearchParameters
+   * @param string|null $keyname
    */
   public function __construct(string $indexName, array $elasticSearchParameters = array(), ?string $keyname = null)
   {
