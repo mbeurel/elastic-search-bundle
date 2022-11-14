@@ -158,7 +158,7 @@ Class ElasticSearch
       $elasticSearchEvent = new ElasticSearchEvent($this->elasticSearchConfiguration->get("index_name"), $elasticSearchParameters);
       $this->eventDispatcher->dispatch($elasticSearchEvent, ElasticSearchEvent::EVENT_CREATE_INDEX);
       try {
-        $this->client->indices()->create($elasticSearchParameters);
+        $this->client->indices()->create($elasticSearchEvent->getElasticSearchParameters());
         $this->viewMessage("Elastic Search - Create index success");
       } catch(\Exception $e) {
         $this->viewMessage("Elastic Search - Create index error : {$e->getMessage()}", "error");
