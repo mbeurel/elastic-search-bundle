@@ -127,7 +127,7 @@ class Results
    */
   public function getShards(): array
   {
-    return $this->_shards;
+    return $this->shards;
   }
 
   /**
