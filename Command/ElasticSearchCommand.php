@@ -94,7 +94,7 @@ EOF
       }
     }
     catch (Exception $e) {
-      $this->viewMessage("Elastic search error -> {$e->getMessage()} !!!", "error");
+      throw new Exception("Elastic search error -> {$e->getMessage()} !!!");
     }
   }
 
