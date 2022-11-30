@@ -61,7 +61,8 @@ class DoctrineListener implements EventSubscriber
   {
       return array(
         Events::preRemove,
-        Events::postUpdate
+        Events::postUpdate,
+        Events::postPersist
       );
   }
 
@@ -71,6 +72,25 @@ class DoctrineListener implements EventSubscriber
    * @throws \Exception
    */
   public function postUpdate(LifecycleEventArgs $args): void
+  {
+    if($this->elasticSearchConfiguration->get("enabled"))
+    {
+      $ea = $this->getEventAdapter($args);
+      $object = $ea->getObject();
+      if($object instanceof TranslateChildInterface)
+      {
+        $object = $object->getMaster();
+      }
+      $this->elasticSearch->createOrUpdateObject($object);
+    }
+  }
+
+  /**
+   * @param LifecycleEventArgs $args
+   *
+   * @throws \Exception
+   */
+  public function postPersist(LifecycleEventArgs $args): void
   {
     if($this->elasticSearchConfiguration->get("enabled"))
     {
