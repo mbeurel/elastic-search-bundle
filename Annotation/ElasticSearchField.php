@@ -21,6 +21,7 @@ final class ElasticSearchField extends AustralEntityAnnotation
 {
 
   const INDEX_TYPE = "index_type";
+  const OBJECT_NAME = "object_type";
 
   const NAME_TITLE = "title";
   const NAME_REF_H1 = "ref_h1";

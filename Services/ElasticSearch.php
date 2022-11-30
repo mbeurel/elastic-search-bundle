@@ -249,11 +249,12 @@ Class ElasticSearch
       $valuesParameters[$fieldAnnotation->name] = $fieldAnnotation->value ?? $elasticSearchMapping->getObjectValue($object, $fieldAnnotation->keyname);
     }
 
+    $valuesParameters[Result::OBJECT_NAME] = $elasticSearchMapping->getName();
     $valuesParameters[Result::VALUE_OBJECT_ID]  = $object->getId();
     $valuesParameters[Result::VALUE_OBJECT_CLASSNAME]  = $object->getClassnameForMapping();
 
     $objectUpdate = method_exists($object, "getUpdate") ? $object->getUpdate() : new \DateTime() ;
-    $valuesParameters[ElasticSearchField::NAME_UPDATE] = $objectUpdate->format("Y-m-d h:i:s");
+    $valuesParameters[ElasticSearchField::NAME_UPDATE] = $objectUpdate->getTimestamp();
 
     $elasticSearchHydrateEvent = new ElasticSearchHydrateObjectEvent($object, array(
       "index" =>  array(
@@ -311,8 +312,6 @@ Class ElasticSearch
 
   /**
    * @param array $elasticSearchParameters
-   * @param array $elasticSearchMappingData
-   *
    * @return $this
    */
   protected function hydratePush(array $elasticSearchParameters = array()): ElasticSearch
@@ -453,14 +452,14 @@ Class ElasticSearch
    * @return Results
    * @throws \Exception
    */
-  public function searchByFiltres(array $filtres = array(), int $offset = 0, int $limit = 20, ?string $keyname = null): Results
+  public function searchByFiltres(array $filtres = array(), int $offset = 0, int $limit = 20, ?string $keyname = null, array $sort = array()): Results
   {
     $parameters = array(
       "index"  => $this->elasticSearchConfiguration->get("index_name"),
       "from"   => $offset,
       "size"   => $limit,
       "body"   =>  array(
-        "query"   =>  $filtres,
+        "query"   =>  array(),
         "highlight" => array(
           "pre_tags" => array("<span class='highlight-search'><span class='value'>"),
           "post_tags" => array("</span></span>"),
@@ -473,10 +472,22 @@ Class ElasticSearch
         )
       )
     );
+
+    if($filtres)
+    {
+      $parameters["body"]["query"] = $filtres;
+    }
+
+    if($sort)
+    {
+      $parameters["body"]["sort"] = $sort;
+    }
+
     $elasticSearchEvent = new ElasticSearchEvent($this->elasticSearchConfiguration->get("index_name"), $parameters, $keyname);
     $this->eventDispatcher->dispatch($elasticSearchEvent, ElasticSearchEvent::EVENT_FILTER);
 
     $results = $this->client->search($elasticSearchEvent->getElasticSearchParameters());
+
     $searchResult = new Results();
     $searchResult->initValues($results);
     return $searchResult;

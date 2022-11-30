@@ -22,6 +22,7 @@ class Result
 {
 
   const INDEX_TYPE = "index_type";
+  const OBJECT_NAME = ElasticSearchField::OBJECT_NAME;
 
   const VALUE_TITLE = ElasticSearchField::NAME_TITLE;
   const VALUE_REF_H1 = ElasticSearchField::NAME_REF_H1;
@@ -49,9 +50,9 @@ class Result
   protected string $_type;
 
   /**
-   * @var string
+   * @var string|null
    */
-  protected string $_score;
+  protected ?string $_score = null;
 
   /**
    * @var array
@@ -158,7 +159,7 @@ class Result
     $this->objectId = AustralTools::getValueByKey($this->_source, self::VALUE_OBJECT_ID);
 
     $this->language = AustralTools::getValueByKey($this->_source, self::VALUE_LANGUAGE);
-    $this->update = new \DateTime(AustralTools::getValueByKey($this->_source, "update"));
+    $this->update = (new \DateTime())->setTimestamp(AustralTools::getValueByKey($this->_source, "update"));
 
     $hightLight = AustralTools::getValueByKey($values, "highlight");
 

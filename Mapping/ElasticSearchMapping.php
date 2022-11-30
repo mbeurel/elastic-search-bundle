@@ -27,12 +27,18 @@ final Class ElasticSearchMapping extends EntityClassMapping
    */
   protected array $fieldsAnnotations = array();
 
+  /**
+   * @var string|null
+   */
+  protected ?string $name = null;
+
 
   /**
    * Constructor.
    */
-  public function __construct()
+  public function __construct(?string $name = null)
   {
+    $this->name = $name;
   }
 
   /**
@@ -65,8 +71,13 @@ final Class ElasticSearchMapping extends EntityClassMapping
     return $this->fieldsAnnotations;
   }
 
-
-
+  /**
+   * @return string|null
+   */
+  public function getName(): ?string
+  {
+    return $this->name;
+  }
 
 
 }

@@ -62,7 +62,7 @@ class EntityMappingListener
           $entityMapping = new EntityMapping($entityAnnotation->getClassname(), $entityAnnotation->getSlugger());
         }
 
-        $elasticSearchMapping = new ElasticSearchMapping();
+        $elasticSearchMapping = new ElasticSearchMapping($entityAnnotation->getClassAnnotations()[ElasticSearch::class]->name);
 
         foreach($entityAnnotation->getClassAnnotations()[ElasticSearch::class]->fieldAnnotations as $fieldAnnotation)
         {
