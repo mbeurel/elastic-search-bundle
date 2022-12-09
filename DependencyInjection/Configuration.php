@@ -69,14 +69,12 @@ class Configuration implements ConfigurationInterface
   public function getConfigDefault(): array
   {
     return array(
-      "enabled"           =>  true,
+      "enabled"           =>  false,
       "logger"            =>  array(
         "enabled"           =>  true,
       ),
       "index_name"        =>  "elastic-search",
       "hosts"             =>  array(
-        array(
-        )
       )
     );
   }
