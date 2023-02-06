@@ -415,11 +415,13 @@ Class ElasticSearch
    * @param int $limit
    * @param string|null $language
    * @param string|null $keyname
+   * @param array $sort
+   * @param array $body
    *
    * @return Results
    * @throws \Exception
    */
-  public function searchByQuery(string $query, int $offset = 0, int $limit = 20, ?string $language = null, ?string $keyname = null): Results
+  public function searchByQuery(string $query, int $offset = 0, int $limit = 20, ?string $language = null, ?string $keyname = null, array $sort = array(), array $body = array()): Results
   {
     $filters = array(
       "bool"    =>  array(
@@ -440,7 +442,7 @@ Class ElasticSearch
         )
       );
     }
-    return $this->searchByFiltres($filters, $offset, $limit, $keyname);
+    return $this->searchByFiltres($filters, $offset, $limit, $keyname, $sort, $body);
   }
 
   /**
@@ -448,40 +450,45 @@ Class ElasticSearch
    * @param int $offset
    * @param int $limit
    * @param string|null $keyname
+   * @param array $sort
+   * @param array $body
    *
    * @return Results
    * @throws \Exception
    */
-  public function searchByFiltres(array $filtres = array(), int $offset = 0, int $limit = 20, ?string $keyname = null, array $sort = array()): Results
+  public function searchByFiltres(array $filtres = array(), int $offset = 0, int $limit = 20, ?string $keyname = null, array $sort = array(), array $body = array()): Results
   {
-    $parameters = array(
-      "index"  => $this->elasticSearchConfiguration->get("index_name"),
-      "from"   => $offset,
-      "size"   => $limit,
-      "body"   =>  array(
-        "query"   =>  array(),
-        "highlight" => array(
-          "pre_tags" => array("<span class='highlight-search'><span class='value'>"),
-          "post_tags" => array("</span></span>"),
-          "fields" => array(
-            ElasticSearchField::NAME_TITLE  => array("force_source" => true, "fragment_size" => 300, "no_match_size" => 300, "number_of_fragments" => 1),
-            ElasticSearchField::NAME_REF_H1  => array("force_source" => true, "fragment_size" => 300, "no_match_size" => 300, "number_of_fragments" => 1),
-            ElasticSearchField::NAME_REF_TITLE  => array("force_source" => true, "fragment_size" => 300, "no_match_size" => 300, "number_of_fragments" => 1),
-            ElasticSearchField::NAME_CONTENT  => array("force_source" => true, "fragment_size" => 90, "number_of_fragments" => 3, "no_match_size" => 270)
-          )
+    if(!array_key_exists("highlight", $body))
+    {
+      $body["highlight"] = array(
+        "pre_tags" => array("<span class='highlight-search'><span class='value'>"),
+        "post_tags" => array("</span></span>"),
+        "fields" => array(
+          ElasticSearchField::NAME_TITLE  => array("force_source" => true, "fragment_size" => 300, "no_match_size" => 300, "number_of_fragments" => 1),
+          ElasticSearchField::NAME_REF_H1  => array("force_source" => true, "fragment_size" => 300, "no_match_size" => 300, "number_of_fragments" => 1),
+          ElasticSearchField::NAME_REF_TITLE  => array("force_source" => true, "fragment_size" => 300, "no_match_size" => 300, "number_of_fragments" => 1),
+          ElasticSearchField::NAME_CONTENT  => array("force_source" => true, "fragment_size" => 90, "number_of_fragments" => 3, "no_match_size" => 270)
         )
-      )
-    );
+      );
+    }
 
     if($filtres)
     {
-      $parameters["body"]["query"] = $filtres;
+      $body["query"] = $filtres;
     }
 
     if($sort)
     {
-      $parameters["body"]["sort"] = $sort;
+      $body["sort"] = $sort;
     }
+
+
+    $parameters = array(
+      "index"  => $this->elasticSearchConfiguration->get("index_name"),
+      "from"   => $offset,
+      "size"   => $limit,
+      "body"   =>  $body
+    );
 
     $elasticSearchEvent = new ElasticSearchEvent($this->elasticSearchConfiguration->get("index_name"), $parameters, $keyname);
     $this->eventDispatcher->dispatch($elasticSearchEvent, ElasticSearchEvent::EVENT_FILTER);
