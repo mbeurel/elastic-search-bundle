@@ -354,7 +354,7 @@ Class ElasticSearch
         $response = $this->client->bulk($elasticSearchParameters);
         if($response["errors"])
         {
-          throw new \Exception("Hydrate is failed");
+          throw new \Exception("Hydrate is failed -> {$response["errors"]}");
         }
 
         $nbItemCreated = 0;
