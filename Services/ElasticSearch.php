@@ -197,6 +197,7 @@ Class ElasticSearch
         {
           $eventQuery = new ElasticSearchSelectObjectsEvent($entityMapping->entityClass);
           $elasticSearchParametersToObject = $this->elasticSearchParameters();
+          $entityManager->clear();
           $objects = $entityManager->getRepository($entityMapping->entityClass)->selectByClosure(function(AustralQueryBuilder $queryBuilder) use($eventQuery, $eventDispatcher, $offset){
             $eventQuery->setQueryBuilder($queryBuilder);
             $eventDispatcher->dispatch($eventQuery, ElasticSearchSelectObjectsEvent::EVENT_QUERY_BUILDER);
@@ -321,9 +322,6 @@ Class ElasticSearch
       }
       $this->hydratePush($elasticSearchParameters);
     }
-
-
-
     return $this;
   }
 
