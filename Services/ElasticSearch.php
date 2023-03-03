@@ -176,7 +176,6 @@ Class ElasticSearch
     /** @var EntityManager $entityManager */
     $entityManager = $this->container->get('austral.entity_manager');
 
-    $elasticSearchParameters = $this->elasticSearchParameters();
     /** @var EntityMapping $entityMapping */
     foreach($this->mapping->getEntitiesMapping() as $entityMapping)
     {
@@ -185,29 +184,61 @@ Class ElasticSearch
       {
         $eventDispatcher = $this->eventDispatcher;
         $eventQuery = new ElasticSearchSelectObjectsEvent($entityMapping->entityClass);
-        $objects = $entityManager->getRepository($entityMapping->entityClass)->selectByClosure(function(AustralQueryBuilder $queryBuilder) use($eventQuery, $eventDispatcher){
+
+        $countObject = $entityManager->getRepository($entityMapping->entityClass)->countAll(function(AustralQueryBuilder $queryBuilder) use($eventQuery, $eventDispatcher){
           $eventQuery->setQueryBuilder($queryBuilder);
           $eventDispatcher->dispatch($eventQuery, ElasticSearchSelectObjectsEvent::EVENT_QUERY_BUILDER);
           return $queryBuilder;
         });
 
-        $eventQuery->setObjects($objects);
-        $eventDispatcher->dispatch($eventQuery, ElasticSearchSelectObjectsEvent::EVENT_OBJECTS);
+        $offset = 0;
 
-        /** @var ObjectToHydrate $objectToHydrate */
-        foreach ($eventQuery->getObjectsToHydrate() as $objectToHydrate)
+        while ($offset != $countObject)
         {
-          $this->hydrateObject(
-            $elasticSearchParameters,
-            $elasticSearchMapping,
-            $objectToHydrate->getObject(),
-            $objectToHydrate->getElasticSearchId(),
-            $objectToHydrate->getValuesParameters()
-          );
+          $elasticSearchParametersToObject = $this->elasticSearchParameters();
+          $objects = $entityManager->getRepository($entityMapping->entityClass)->selectByClosure(function(AustralQueryBuilder $queryBuilder) use($eventQuery, $eventDispatcher, $offset){
+            $eventQuery->setQueryBuilder($queryBuilder);
+            $eventDispatcher->dispatch($eventQuery, ElasticSearchSelectObjectsEvent::EVENT_QUERY_BUILDER);
+            $queryBuilder->setMaxResults(500)
+              ->setFirstResult($offset);
+            return $queryBuilder;
+          });
+          $offset += count($objects);
+
+          $eventQuery->setObjects($objects);
+          $eventDispatcher->dispatch($eventQuery, ElasticSearchSelectObjectsEvent::EVENT_OBJECTS);
+
+          /** @var ObjectToHydrate $objectToHydrate */
+          foreach ($eventQuery->getObjectsToHydrate() as $objectToHydrate)
+          {
+            $this->hydrateObject(
+              $elasticSearchParametersToObject,
+              $elasticSearchMapping,
+              $objectToHydrate->getObject(),
+              $objectToHydrate->getElasticSearchId(),
+              $objectToHydrate->getValuesParameters()
+            );
+          }
+
+          $eventQuery->setObjects($objects);
+          $eventDispatcher->dispatch($eventQuery, ElasticSearchSelectObjectsEvent::EVENT_OBJECTS);
+
+          /** @var ObjectToHydrate $objectToHydrate */
+          foreach ($eventQuery->getObjectsToHydrate() as $objectToHydrate)
+          {
+            $this->hydrateObject(
+              $elasticSearchParametersToObject,
+              $elasticSearchMapping,
+              $objectToHydrate->getObject(),
+              $objectToHydrate->getElasticSearchId(),
+              $objectToHydrate->getValuesParameters()
+            );
+          }
+          $this->hydratePush($elasticSearchParametersToObject);
+          $entityManager->clear();
         }
       }
     }
-    $this->hydratePush($elasticSearchParameters);
     return $this;
   }
 
