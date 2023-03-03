@@ -204,6 +204,7 @@ Class ElasticSearch
             return $queryBuilder;
           });
           $offset += count($objects);
+          $this->viewMessage("Elastic Search - Objects {$offset} / {$countObject}");
 
           $eventQuery->setObjects($objects);
           $eventDispatcher->dispatch($eventQuery, ElasticSearchSelectObjectsEvent::EVENT_OBJECTS);
@@ -235,7 +236,6 @@ Class ElasticSearch
             );
           }
           $this->hydratePush($elasticSearchParametersToObject);
-          $entityManager->clear();
         }
       }
     }
