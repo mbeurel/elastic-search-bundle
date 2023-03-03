@@ -102,6 +102,15 @@ Class ElasticSearch
   }
 
   /**
+   * getClient
+   * @return Client
+   */
+  public function getClient(): Client
+  {
+    return $this->client;
+  }
+
+  /**
    * @return array
    */
   protected function elasticSearchParameters(): array
