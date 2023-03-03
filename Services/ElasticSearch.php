@@ -482,6 +482,7 @@ Class ElasticSearch
    */
   public function searchByFiltres(array $filtres = array(), int $offset = 0, int $limit = 20, ?string $keyname = null, array $sort = array(), array $body = array()): Results
   {
+    $count = $this->countByFilter($filtres, $keyname, $body);
     if(!array_key_exists("highlight", $body))
     {
       $body["highlight"] = array(
@@ -506,7 +507,6 @@ Class ElasticSearch
       $body["sort"] = $sort;
     }
 
-
     $parameters = array(
       "index"  => $this->elasticSearchConfiguration->get("index_name"),
       "from"   => $offset,
@@ -521,7 +521,34 @@ Class ElasticSearch
 
     $searchResult = new Results();
     $searchResult->initValues($results);
+
+    $searchResult->setNbResults($count);
     return $searchResult;
   }
+
+  /**
+   * @param array $filtres
+   * @param string|null $keyname
+   * @param array $body
+   *
+   * @return int
+   * @throws \Exception
+   */
+  public function countByFilter(array $filtres = array(), ?string $keyname = null, array $body = array()): int
+  {
+    if($filtres)
+    {
+      $body["query"] = $filtres;
+    }
+    $parameters = array(
+      "index"  => $this->elasticSearchConfiguration->get("index_name"),
+      "body"   =>  $body
+    );
+    $elasticSearchEvent = new ElasticSearchEvent($this->elasticSearchConfiguration->get("index_name"), $parameters, $keyname);
+    $this->eventDispatcher->dispatch($elasticSearchEvent, ElasticSearchEvent::EVENT_FILTER);
+    $countResponse = $this->client->count($elasticSearchEvent->getElasticSearchParameters());
+    return $countResponse["count"];
+  }
+
 
 }
