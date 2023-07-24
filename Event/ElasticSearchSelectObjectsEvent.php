@@ -33,6 +33,11 @@ class ElasticSearchSelectObjectsEvent extends Event
   private array $objects = array();
 
   /**
+   * @var bool
+   */
+  private bool $isCount = false;
+
+  /**
    * @var array
    */
   private array $objectsToHydrate = array();
@@ -104,6 +109,24 @@ class ElasticSearchSelectObjectsEvent extends Event
   public function setObjectsToHydrate(array $objectsToHydrate): ElasticSearchSelectObjectsEvent
   {
     $this->objectsToHydrate = $objectsToHydrate;
+    return $this;
+  }
+
+  /**
+   * @return bool
+   */
+  public function getIsCount(): bool
+  {
+    return $this->isCount;
+  }
+
+  /**
+   * @param bool $isCount
+   * @return $this
+   */
+  public function setIsCount(bool $isCount): ElasticSearchSelectObjectsEvent
+  {
+    $this->isCount = $isCount;
     return $this;
   }
 

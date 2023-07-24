@@ -197,6 +197,7 @@ Class ElasticSearch
 
         $countObject = $entityManager->getRepository($entityMapping->entityClass)->countAll(function(AustralQueryBuilder $queryBuilder) use($eventQuery, $eventDispatcher){
           $eventQuery->setQueryBuilder($queryBuilder);
+          $eventQuery->setIsCount(true);
           $eventDispatcher->dispatch($eventQuery, ElasticSearchSelectObjectsEvent::EVENT_QUERY_BUILDER);
           return $queryBuilder;
         });
