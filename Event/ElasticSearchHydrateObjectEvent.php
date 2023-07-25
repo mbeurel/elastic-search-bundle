@@ -11,6 +11,7 @@
 namespace Austral\ElasticSearchBundle\Event;
 
 use Austral\EntityBundle\Entity\EntityInterface;
+use Austral\ToolsBundle\AustralTools;
 use Symfony\Contracts\EventDispatcher\Event;
 
 /**
@@ -92,22 +93,43 @@ class ElasticSearchHydrateObjectEvent extends Event
   }
 
   /**
-   * @return mixed
+   * @return array
    */
-  public function getValuesParameters()
+  public function getValuesParameters(): array
   {
     return $this->valuesParameters;
   }
 
   /**
-   * @param mixed $valuesParameters
+   * @param array $valuesParameters
    *
    * @return ElasticSearchHydrateObjectEvent
    */
-  public function setValuesParameters($valuesParameters): ElasticSearchHydrateObjectEvent
+  public function setValuesParameters(array $valuesParameters = array()): ElasticSearchHydrateObjectEvent
   {
     $this->valuesParameters = $valuesParameters;
     return $this;
+  }
+
+  /**
+   * @param string $key
+   * @param $value
+   * @return ElasticSearchHydrateObjectEvent
+   */
+  public function addValuesParameter(string $key, $value): ElasticSearchHydrateObjectEvent
+  {
+    $this->valuesParameters[$key] = $value;
+    return $this;
+  }
+
+  /**
+   * @param string $key
+   * @param null $default
+   * @return mixed
+   */
+  public function getValueParameterByKey(string $key, $default = null)
+  {
+    return AustralTools::getValueByKey($this->getValuesParameters(), $key, $default);
   }
 
 }
