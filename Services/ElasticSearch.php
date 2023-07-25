@@ -192,6 +192,28 @@ Class ElasticSearch
       /** @var ElasticSearchMapping $elasticSearchMapping */
       if($elasticSearchMapping = $entityMapping->getEntityClassMapping(ElasticSearchMapping::class))
       {
+
+        $elasticSearchMappingProperties = array();
+        /** @var ElasticSearchField $fieldAnnotation */
+        foreach ($elasticSearchMapping->getFieldsAnnotations() as $fieldAnnotation)
+        {
+          if($fieldAnnotation->mappingType)
+          {
+            $elasticSearchMappingProperties[$fieldAnnotation->name] = array(
+              "type"  => $fieldAnnotation->mappingType
+            );
+          }
+        }
+        if($elasticSearchMappingProperties)
+        {
+          $this->client->indices()->putMapping(array(
+            "index" =>   $this->elasticSearchConfiguration->get("index_name"),
+            "body"      =>  array(
+              "properties"  =>  $elasticSearchMappingProperties
+            )
+          ));
+        }
+
         $eventDispatcher = $this->eventDispatcher;
         $eventQuery = new ElasticSearchSelectObjectsEvent($entityMapping->entityClass);
 
@@ -234,6 +256,7 @@ Class ElasticSearch
           }
           $this->hydratePush($elasticSearchParametersToObject);
         }
+
       }
     }
     return $this;

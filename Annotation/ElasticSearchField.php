@@ -45,16 +45,23 @@ final class ElasticSearchField extends AustralEntityAnnotation
   public ?string $value = "";
 
   /**
+   * @var string|null
+   */
+  public ?string $mappingType = "";
+
+  /**
    * @param string|null $name
    * @param string|null $keyname
    * @param string|null $value
+   * @param string|null $mappingType
    */
-  public function __construct(?string $name = null, ?string $keyname = null, ?string $value = null) {
+  public function __construct(?string $name = null, ?string $keyname = null, ?string $value = null, ?string $mappingType = null) {
     $this->name = $name;
     if($keyname) {
       $this->keyname = $keyname;
     }
     $this->value = $value;
+    $this->mappingType = $mappingType;
   }
 
 }
