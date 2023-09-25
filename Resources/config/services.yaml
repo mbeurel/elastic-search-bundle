@@ -23,6 +23,7 @@ services:
       - "%austral_elastic_search_config%"
 
 ##### Austral Listener
+  Austral\ElasticSearchBundle\Listener\EntityMappingListener: "@austral.elastic_search.entity_mapping.listener"
   austral.elastic_search.entity_mapping.listener:
     class:        Austral\ElasticSearchBundle\Listener\EntityMappingListener
     arguments:
@@ -30,6 +31,7 @@ services:
     tags:
       - { name: kernel.event_listener, event: "austral.event.entity.initialise.mapping", method: mapping }
 
+  Austral\ElasticSearchBundle\Listener\DoctrineListener:  "@austral.elastic_search.doctrine.listener"
   austral.elastic_search.doctrine.listener:
     class:        Austral\ElasticSearchBundle\Listener\DoctrineListener
     arguments:
@@ -39,16 +41,19 @@ services:
       - { name: doctrine.event_subscriber, connection: default }
 
 ##### Austral Event Subscriber
+  Austral\ElasticSearchBundle\EventSubscriber\ElasticSearchEventSubscriber: "@austral.elastic_search.event_subscriber"
   austral.elastic_search.event_subscriber:
     class:        Austral\ElasticSearchBundle\EventSubscriber\ElasticSearchEventSubscriber
     tags:
       - { name: kernel.event_subscriber}
 
+  Austral\ElasticSearchBundle\EventSubscriber\ElasticSearchHydrateObjectEventSubscriber:  "@austral.elastic_search.hydrate_object.event_subscriber"
   austral.elastic_search.hydrate_object.event_subscriber:
     class:        Austral\ElasticSearchBundle\EventSubscriber\ElasticSearchHydrateObjectEventSubscriber
     tags:
       - { name: kernel.event_subscriber}
 
+  Austral\ElasticSearchBundle\EventSubscriber\ElasticSearchSelectObjectsEventSubscriber:  "@austral.elastic_search.select_objects.event_subscriber"
   austral.elastic_search.select_objects.event_subscriber:
     class:        Austral\ElasticSearchBundle\EventSubscriber\ElasticSearchSelectObjectsEventSubscriber
     tags:
