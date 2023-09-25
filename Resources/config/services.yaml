@@ -6,6 +6,7 @@ services:
 
 
 ##### Services
+  Austral\ElasticSearchBundle\Services\ElasticSearch: "@austral.elastic_search"
   austral.elastic_search:
     class: Austral\ElasticSearchBundle\Services\ElasticSearch
     arguments:
@@ -15,11 +16,13 @@ services:
       - "@austral.elastic_search.config"
       - "@austral.entity.mapping"
 
+  Austral\ElasticSearchBundle\Configuration\ElasticSearchConfiguration: "@austral.elastic_search.config"
   austral.elastic_search.config:
     class:        Austral\ElasticSearchBundle\Configuration\ElasticSearchConfiguration
     arguments:
       - "%austral_elastic_search_config%"
 
+##### Austral Listener
   austral.elastic_search.entity_mapping.listener:
     class:        Austral\ElasticSearchBundle\Listener\EntityMappingListener
     arguments:
