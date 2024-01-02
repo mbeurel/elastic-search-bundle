@@ -11,6 +11,7 @@
 namespace Austral\ElasticSearchBundle\Model;
 
 use Austral\EntityBundle\Entity\EntityInterface;
+use Austral\ToolsBundle\AustralTools;
 
 /**
  * Austral ElasticSearch ObjectToHydrate Model.
@@ -98,6 +99,16 @@ class ObjectToHydrate
   public function getValuesParameters(): array
   {
     return $this->valuesParameters;
+  }
+
+  /**
+   * @param string $valueKey
+   * @param null $default
+   * @return mixed
+   */
+  public function getValuesParametersByKey(string $valueKey, $default = null): mixed
+  {
+    return AustralTools::getValueByKey($this->valuesParameters, $valueKey, $default);
   }
 
   /**
