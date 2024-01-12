@@ -168,7 +168,7 @@ class Result
       self::VALUE_TITLE       =>  AustralTools::first(AustralTools::getValueByKey($hightLight, self::VALUE_TITLE, array()), null),
       self::VALUE_REF_H1      =>  AustralTools::first(AustralTools::getValueByKey($hightLight, self::VALUE_REF_H1, array()), null),
       self::VALUE_REF_TITLE   =>  AustralTools::first(AustralTools::getValueByKey($hightLight, self::VALUE_REF_TITLE, array()), null),
-      self::VALUE_CONTENT     =>  is_array($hightLightContenu) ? implode("...", $hightLightContenu) : $hightLightContenu
+      self::VALUE_CONTENT     =>  is_array($hightLightContenu) ? implode("... ", $hightLightContenu) : $hightLightContenu
     );
     return $this;
   }
