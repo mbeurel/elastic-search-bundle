@@ -564,6 +564,10 @@ Class ElasticSearch
     {
       $body["query"] = $filtres;
     }
+    if(array_key_exists("highlight", $body))
+    {
+      unset($body["highlight"]);
+    }
     $parameters = array(
       "index"  => $this->elasticSearchConfiguration->get("index_name"),
       "body"   =>  $body
